@@ -12,6 +12,7 @@ class GroupNotFoundException extends AuthException{};
 class UserNotFoundException extends AuthException{};
 class UserIdentityRequiredException extends AuthException{};
 class UserAlreadyExistsException extends AuthException{};
+class UserNotActivatedException extends AuthException{};
 class ColumnNotFoundException extends AuthException{};
 
 //Throttle

@@ -14,4 +14,5 @@ return [
   'email_password_missing'=>"Email or Password Missing",
   'username_already_exists'=>"Username already exists",
   'passwords_do_not_match'=>"Password do not match",
+  'user_not_activated'=>"User is not activated",
 ];

@@ -61,8 +61,6 @@ class UserManagement
     public function createUser($inputs, $group = null, $activate = false)
     {
 
-        dd(trans('user-management::messages.email_password_missing'));
-
         if (!isset($inputs['email']) || !isset($inputs['password'])) {
             //Email and Password is always required to create an account
             throw new Exceptions\LoginFieldsMissingException(trans('user-management::messages.email_password_missing'), array(trans('user-management::messages.email_password_missing')));
@@ -259,15 +257,22 @@ class UserManagement
     public function login($credentials, $remember, $check_throttle = true)
     {
 
+        if (!isset($credentials['email'])||!isset($credentials['password'])) {
+            throw new Exceptions\LoginFieldsMissingException(trans('user-management::messages.email_password_missing'), [trans('user-management::messages.email_password_missing')]);
+        }
+
         if ($check_throttle) {
 
-            $user_available = Users::where("email", $credentials['email'])->count();
+            $user = Users::where("email", $credentials['email'])->first();
 
-            if ($user_available == 0) {
+            if (sizeof($user) <= 0) {
                 throw new Exceptions\UserNotFoundException(trans('user-management::messages.account_not_found'), [trans('user-management::messages.account_not_found')]);
             }
 
-            $user = Users::where("email", $credentials['email'])->first();
+            //Check Activated .
+            if ($user->activated!=1) {
+                throw new Exceptions\UserNotActivatedException(trans('user-management::messages.user_not_activated'), [trans('user-management::messages.user_not_activated')]);
+            }
 
             //Check banned .
             if (Throttle::where("user_id", $user->id)->where("banned", 1)->count() > 0) {
@@ -280,7 +285,11 @@ class UserManagement
             }
         }
 
-        return Auth::attempt($credentials, $remember);
+        if(Auth::attempt($credentials, $remember)){
+            return Auth::getUser();
+        }else{
+            throw new Exceptions\UserNotFoundException(trans('user-management::messages.account_not_found'), [trans('user-management::messages.account_not_found')]);
+        }
     }
 
     public function logout()

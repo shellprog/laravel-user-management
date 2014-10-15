@@ -254,6 +254,39 @@ class UserManagement
         return $code;
     }
 
+    public function loginWithEmail($email,$remember,$check_throttle = true){
+
+        $user = Users::where("email", $email)->first();
+
+        if (sizeof($user) <= 0) {
+            throw new Exceptions\UserNotFoundException(trans('user-management::messages.account_not_found'), [trans('user-management::messages.account_not_found')]);
+        }
+
+        if ($check_throttle) {
+
+            //Check Activated .
+            if ($user->activated!=1) {
+                throw new Exceptions\UserNotActivatedException(trans('user-management::messages.user_not_activated'), [trans('user-management::messages.user_not_activated')]);
+            }
+
+            //Check banned .
+            if (Throttle::where("user_id", $user->id)->where("banned", 1)->count() > 0) {
+                throw new Exceptions\UserBannedException(trans('user-management::messages.user_banned'), [trans('user-management::messages.user_banned')]);
+            }
+
+            //Check suspended .
+            if (Throttle::where("user_id", $user->id)->where("suspended", "1")->count() > 0) {
+                throw new Exceptions\UserSuspendedException(trans('user-management::messages.user_suspended'), [trans('user-management::messages.user_suspended')]);
+            }
+        }
+
+        if(Auth::login($user)){
+            return Auth::getUser();
+        }else{
+            throw new Exceptions\UserNotFoundException(trans('user-management::messages.account_not_found'), [trans('user-management::messages.account_not_found')]);
+        }
+    }
+
     public function login($credentials, $remember, $check_throttle = true)
     {
 

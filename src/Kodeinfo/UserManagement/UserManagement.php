@@ -60,6 +60,9 @@ class UserManagement
 
     public function createUser($inputs, $group = null, $activate = false)
     {
+
+        dd(trans('user-management::messages.email_password_missing'));
+
         if (!isset($inputs['email']) || !isset($inputs['password'])) {
             //Email and Password is always required to create an account
             throw new Exceptions\LoginFieldsMissingException(trans('user-management::messages.email_password_missing'), array(trans('user-management::messages.email_password_missing')));

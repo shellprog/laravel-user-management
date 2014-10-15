@@ -5,11 +5,11 @@ Laravel User Management Made Easy
 
 Add Service Provider to providers array 
 
-'Kodeinfo\UserManagement\UserManagementServiceProvider',
+'KodeInfo\UserManagement\UserManagementServiceProvider',
 
 In Controller 
 
-use Kodeinfo\UserManagement\UserManagement;
+use KodeInfo\UserManagement\UserManagement;
 
 public $userManager;
 

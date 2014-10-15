@@ -9,13 +9,13 @@
     ],
     "require": {
         "php": ">=5.4.0",
-        "illuminate/support": "5.0.*",
-        "illuminate/translation": "5.0.*@dev"
+        "illuminate/support": "4.2.*@dev",
+        "illuminate/translation": "4.2.*@dev"
     },
     "autoload": {
         "psr-0": {
             "KodeInfo\\UserManagement": "src/"
         }
     },
-    "minimum-stability": "dev"
+    "minimum-stability": "stable"
 }

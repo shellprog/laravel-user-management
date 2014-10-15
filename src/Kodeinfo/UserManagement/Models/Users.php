@@ -1,11 +1,11 @@
 <?php namespace KodeInfo\UserManagement\Models;
 
-use Eloquent;
+use Illuminate\Database\Eloquent\Model;
 use Config;
 use DB;
 use Crypt;
 
-class Users extends Eloquent {
+class Users extends Model {
 
     public $table = "users";
 
@@ -75,6 +75,76 @@ class Users extends Eloquent {
         }
 
         return $code;
+    }
+
+    public function allGroups()
+    {
+        $users_groups_table = Config::get("user-management::users_groups_table");
+        $groups = Config::get("user-management::groups_table");
+
+        $group_ids = DB::table($users_groups_table)->where("user_id",$this->id)->select('*')->get();
+
+        return DB::table($groups)->whereIn("id",$group_ids)->select('*')->get();
+    }
+
+    public function isAdmin()
+    {
+       return $this->inGroup('admin');
+    }
+
+    public function isGuest()
+    {
+        return $this->inGroup('guest');
+    }
+
+    public function isCustomer()
+    {
+        return $this->inGroup('customer');
+    }
+
+    public function isSuperAdmin()
+    {
+        return $this->inGroup('super_admin');
+    }
+
+    public function hasPermission($permission_name)
+    {
+        $users_groups_table = Config::get("user-management::users_groups_table");
+        $groups = Config::get("user-management::groups_table");
+
+        $group_ids = DB::table($users_groups_table)->where("user_id",$this->id)->select('*')->get();
+
+        $groups = DB::table($groups)->whereIn("id",$group_ids)->lists('permissions');
+
+        foreach($groups as $group){
+
+            $permissions = json_decode($group->permissions);
+
+            if(in_array($permission_name,$permissions)){
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function inGroup($group_name_or_id)
+    {
+        $users_groups_table = Config::get("user-management::users_groups_table");
+        $groups_table = Config::get("user-management::groups_table");
+
+        if(is_integer($group_name_or_id)){
+            $groups = DB::table($users_groups_table)->where("user_id",$this->id)->where("group_id",$group_name_or_id)->get();
+        }else{
+            $group = DB::table($groups_table)->where("name",$group_name_or_id)->get();
+            $groups = DB::table($users_groups_table)->where("user_id",$this->id)->where("group_id",$group->id)->get();
+        }
+
+       if(sizeof($groups)>0){
+           return true;
+       }
+
+        return false;
     }
 
     public function doExists(array $conditions)

@@ -1,9 +1,9 @@
 <?php namespace KodeInfo\UserManagement\Models;
 
-use Eloquent;
+use Illuminate\Database\Eloquent\Model;
 use Config;
 
-class Groups extends Eloquent {
+class Groups extends Model {
 
     public $table = "groups";
 

@@ -1,9 +1,8 @@
 <?php namespace KodeInfo\UserManagement\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Config;
 
-class Throttle extends Model {
+class Throttle extends \Eloquent {
 
     public $table = "throttle";
 

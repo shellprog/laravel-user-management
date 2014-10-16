@@ -1,11 +1,10 @@
 <?php namespace KodeInfo\UserManagement\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Config;
 use DB;
 use Crypt;
 
-class Users extends Model {
+class Users extends \Eloquent {
 
     public $table = "users";
 

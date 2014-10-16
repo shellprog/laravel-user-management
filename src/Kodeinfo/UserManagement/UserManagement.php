@@ -16,15 +16,37 @@ use KodeInfo\UserManagement\Models\Groups;
 use KodeInfo\UserManagement\Models\Throttle;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
+/**
+ * Class UserManagement
+ * @package KodeInfo\UserManagement
+ */
 class UserManagement
 {
 
+    /**
+     * @var mixed
+     */
     public $users_table;
+    /**
+     * @var mixed
+     */
     public $users_groups_table;
+    /**
+     * @var
+     */
     public $groups_table;
+    /**
+     * @var
+     */
     public $throttle_table;
+    /**
+     * @var mixed
+     */
     public $suspended_interval;
 
+    /**
+     * @param null $arr
+     */
     function  __construct($arr = null)
     {
         $this->users_table = Config::get("user-management::users_table");
@@ -39,6 +61,11 @@ class UserManagement
         }
     }
 
+    /**
+     * @param $arr
+     * @return null|void|Users
+     * @throws Exceptions\UserNotFoundException
+     */
     public function initialize($arr)
     {
 
@@ -53,11 +80,24 @@ class UserManagement
         return $user;
     }
 
+    /**
+     * @return Users
+     */
     public function createModel()
     {
         return new Users();
     }
 
+    /**
+     * @param $inputs
+     * @param null $group
+     * @param bool $activate
+     * @return Users
+     * @throws Exceptions\AuthException
+     * @throws Exceptions\GroupNotFoundException
+     * @throws Exceptions\LoginFieldsMissingException
+     * @throws Exceptions\UserAlreadyExistsException
+     */
     public function createUser($inputs, $group = null, $activate = false)
     {
 
@@ -120,6 +160,10 @@ class UserManagement
 
     }
 
+    /**
+     * @param $email
+     * @throws Exceptions\UserNotFoundException
+     */
     public function findUserByLogin($email)
     {
 
@@ -133,6 +177,10 @@ class UserManagement
 
     }
 
+    /**
+     * @param $id
+     * @throws Exceptions\UserNotFoundException
+     */
     public function findUserById($id)
     {
         if ($this->doExists(['id' => $id])) {
@@ -144,6 +192,12 @@ class UserManagement
         }
     }
 
+    /**
+     * @param null $name
+     * @return Groups
+     * @throws Exceptions\GroupExistsException
+     * @throws Exceptions\NameRequiredException
+     */
     public function createGroup($name = null)
     {
 
@@ -162,11 +216,18 @@ class UserManagement
         }
     }
 
+    /**
+     * @return array|static[]
+     */
     public function allGroups()
     {
         return DB::table($this->groups_table)->select('*')->get();
     }
 
+    /**
+     * @param $arr
+     * @throws Exceptions\GroupNotFoundException
+     */
     public function deleteGroup($arr)
     {
 
@@ -186,6 +247,10 @@ class UserManagement
 
     }
 
+    /**
+     * @param $group_id
+     * @throws Exceptions\GroupNotFoundException
+     */
     public function findGroupById($group_id)
     {
         try {
@@ -196,6 +261,10 @@ class UserManagement
 
     }
 
+    /**
+     * @param $group_name
+     * @throws Exceptions\GroupNotFoundException
+     */
     public function findGroupByName($group_name)
     {
         if (DB::table($this->groups_table)->where("name", $group_name)->count() > 0) {
@@ -205,6 +274,10 @@ class UserManagement
         }
     }
 
+    /**
+     * @param array $conditions
+     * @return bool
+     */
     public function doExists(array $conditions)
     {
 
@@ -218,6 +291,10 @@ class UserManagement
 
     }
 
+    /**
+     * @param $id
+     * @return Throttle
+     */
     public function findThrottlerByUserId($id)
     {
 
@@ -242,6 +319,9 @@ class UserManagement
         }
     }
 
+    /**
+     * @return string
+     */
     public function generateResetCode()
     {
 
@@ -254,6 +334,15 @@ class UserManagement
         return $code;
     }
 
+    /**
+     * @param $email
+     * @param $remember
+     * @param bool $check_throttle
+     * @throws Exceptions\UserBannedException
+     * @throws Exceptions\UserNotActivatedException
+     * @throws Exceptions\UserNotFoundException
+     * @throws Exceptions\UserSuspendedException
+     */
     public function loginWithEmail($email,$remember,$check_throttle = true){
 
         $user = Users::where("email", $email)->first();
@@ -287,6 +376,16 @@ class UserManagement
         }
     }
 
+    /**
+     * @param $credentials
+     * @param $remember
+     * @param bool $check_throttle
+     * @throws Exceptions\LoginFieldsMissingException
+     * @throws Exceptions\UserBannedException
+     * @throws Exceptions\UserNotActivatedException
+     * @throws Exceptions\UserNotFoundException
+     * @throws Exceptions\UserSuspendedException
+     */
     public function login($credentials, $remember, $check_throttle = true)
     {
 
@@ -325,6 +424,9 @@ class UserManagement
         }
     }
 
+    /**
+     *
+     */
     public function logout()
     {
         Session::flush();

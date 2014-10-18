@@ -370,7 +370,7 @@ class UserManagement
         }
 
         if(Auth::login($user,$remember)){
-            return Auth::getUser();
+            return Auth::user();
         }else{
             throw new Exceptions\UserNotFoundException(trans('user-management::messages.account_not_found'), [trans('user-management::messages.account_not_found')]);
         }
@@ -418,7 +418,7 @@ class UserManagement
         }
 
         if(Auth::attempt($credentials, $remember)){
-            return Auth::getUser();
+            return Auth::user();
         }else{
             throw new Exceptions\UserNotFoundException(trans('user-management::messages.account_not_found'), [trans('user-management::messages.account_not_found')]);
         }

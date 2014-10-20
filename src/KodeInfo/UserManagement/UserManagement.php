@@ -268,8 +268,11 @@ class UserManagement
      */
     public function findGroupByName($group_name)
     {
-        if (DB::table($this->groups_table)->where("name", $group_name)->count() > 0) {
-            return DB::table($this->groups_table)->where("name", $group_name)->first();
+
+        $grp = DB::table($this->groups_table)->where("name", $group_name)->first();
+
+        if (sizeof($grp)>0) {
+            return $grp;
         } else {
             throw new Exceptions\GroupNotFoundException(trans('user-management::messages.group_not_found'), array(trans('user-management::messages.group_not_found')));
         }

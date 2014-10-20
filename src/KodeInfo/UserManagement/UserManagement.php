@@ -27,6 +27,7 @@ class UserManagement
      * @var mixed
      */
     public $users_table;
+    public $user;
     /**
      * @var mixed
      */
@@ -57,7 +58,7 @@ class UserManagement
 
         if (!is_null($arr)) {
             $item = $this->initialize($arr);
-            return $item;
+            $this->user = $item;
         }
     }
 
@@ -389,7 +390,7 @@ class UserManagement
     public function login($credentials, $remember, $check_throttle = true)
     {
 
-        if (!isset($credentials['email'])||!isset($credentials['password'])) {
+        if (strlen($credentials['email'])<=0||strlen($credentials['password'])<=0) {
             throw new Exceptions\LoginFieldsMissingException(trans('user-management::messages.email_password_missing'), [trans('user-management::messages.email_password_missing')]);
         }
 
@@ -431,5 +432,6 @@ class UserManagement
     {
         Session::flush();
         Auth::logout();
+        return true;
     }
 } 

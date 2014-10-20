@@ -52,8 +52,8 @@ class UserManagement
     {
         $this->users_table = Config::get("user-management::users_table");
         $this->users_groups_table = Config::get("user-management::users_groups_table");
-        $this->groups = Config::get("user-management::groups_table");
-        $this->throttle = Config::get("user-management::throttle_table");
+        $this->groups_table = Config::get("user-management::groups_table");
+        $this->throttle_table = Config::get("user-management::throttle_table");
         $this->suspended_interval = Config::get("user-management::suspended_interval");
 
         if (!is_null($arr)) {

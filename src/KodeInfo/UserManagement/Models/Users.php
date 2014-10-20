@@ -142,7 +142,7 @@ class Users extends \Eloquent implements UserInterface, RemindableInterface{
         if(is_integer($group_name_or_id)){
             $groups = DB::table($users_groups_table)->where("user_id",$this->id)->where("group_id",$group_name_or_id)->get();
         }else{
-            $group = DB::table($groups_table)->where("name",$group_name_or_id)->get();
+            $group = DB::table($groups_table)->where("name",$group_name_or_id)->first();
             $groups = DB::table($users_groups_table)->where("user_id",$this->id)->where("group_id",$group->id)->get();
         }
 

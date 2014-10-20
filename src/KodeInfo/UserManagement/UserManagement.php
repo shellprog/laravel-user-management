@@ -102,7 +102,7 @@ class UserManagement
     public function createUser($inputs, $group = null, $activate = false)
     {
 
-        if (!isset($inputs['email']) || !isset($inputs['password'])) {
+        if (strlen($inputs['email'])<=0 || strlen($inputs['password'])<=0) {
             //Email and Password is always required to create an account
             throw new Exceptions\LoginFieldsMissingException(trans('user-management::messages.email_password_missing'), array(trans('user-management::messages.email_password_missing')));
         }
@@ -344,7 +344,7 @@ class UserManagement
      * @throws Exceptions\UserNotFoundException
      * @throws Exceptions\UserSuspendedException
      */
-    public function loginWithEmail($email,$remember,$check_throttle = true){
+    public function loginWithID($email,$remember,$check_throttle = true){
 
         $user = Users::where("email", $email)->first();
 
@@ -370,7 +370,7 @@ class UserManagement
             }
         }
 
-        if(Auth::login($user,$remember)){
+        if(Auth::loginUsingId($user->id,$remember)){
             return Auth::user();
         }else{
             throw new Exceptions\UserNotFoundException(trans('user-management::messages.account_not_found'), [trans('user-management::messages.account_not_found')]);

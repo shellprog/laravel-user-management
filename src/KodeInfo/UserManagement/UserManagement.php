@@ -10,7 +10,22 @@ use Crypt;
 use Session;
 use Auth;
 use Lang;
-use KodeInfo\UserManagement\Exceptions;
+use KodeInfo\UserManagement\Exceptions\AuthException;
+use KodeInfo\UserManagement\Exceptions\NameRequiredException;
+use KodeInfo\UserManagement\Exceptions\ValidationException;
+use KodeInfo\UserManagement\Exceptions\GroupExistsException;
+use KodeInfo\UserManagement\Exceptions\GroupNotFoundException;
+use KodeInfo\UserManagement\Exceptions\UserNotFoundException;
+use KodeInfo\UserManagement\Exceptions\UserIdentityRequiredException;
+use KodeInfo\UserManagement\Exceptions\UserAlreadyExistsException;
+use KodeInfo\UserManagement\Exceptions\UserNotActivatedException;
+use KodeInfo\UserManagement\Exceptions\ColumnNotFoundException;
+use KodeInfo\UserManagement\Exceptions\UserBannedException;
+use KodeInfo\UserManagement\Exceptions\UserSuspendedException;
+use KodeInfo\UserManagement\Exceptions\LoginFailedException;
+use KodeInfo\UserManagement\Exceptions\LoginFieldsMissingException;
+use KodeInfo\UserManagement\Exceptions\LoginNotFoundException;
+use KodeInfo\UserManagement\Exceptions\LoginValidatorException;
 use KodeInfo\UserManagement\Models\Users;
 use KodeInfo\UserManagement\Models\Groups;
 use KodeInfo\UserManagement\Models\Throttle;
@@ -65,7 +80,7 @@ class UserManagement
     /**
      * @param $arr
      * @return null|void|Users
-     * @throws Exceptions\UserNotFoundException
+     * @throws UserNotFoundException
      */
     public function initialize($arr)
     {
@@ -94,32 +109,32 @@ class UserManagement
      * @param null $group
      * @param bool $activate
      * @return Users
-     * @throws Exceptions\AuthException
-     * @throws Exceptions\GroupNotFoundException
-     * @throws Exceptions\LoginFieldsMissingException
-     * @throws Exceptions\UserAlreadyExistsException
+     * @throws AuthException
+     * @throws GroupNotFoundException
+     * @throws LoginFieldsMissingException
+     * @throws UserAlreadyExistsException
      */
     public function createUser($inputs, $group = null, $activate = false)
     {
 
         if (strlen($inputs['email'])<=0 || strlen($inputs['password'])<=0) {
             //Email and Password is always required to create an account
-            throw new Exceptions\LoginFieldsMissingException(trans('user-management::messages.email_password_missing'), array(trans('user-management::messages.email_password_missing')));
+            throw new LoginFieldsMissingException(trans('user-management::messages.email_password_missing'), array(trans('user-management::messages.email_password_missing')));
         }
 
         if ($inputs['password'] !== $inputs['password_confirmation'])
         {
-            throw new Exceptions\AuthException(trans('user-management::messages.passwords_do_not_match'),array(trans('user-management::messages.passwords_do_not_match')));
+            throw new AuthException(trans('user-management::messages.passwords_do_not_match'),array(trans('user-management::messages.passwords_do_not_match')));
         }
 
         if ($this->doExists(["email" => $inputs['email']])) {
             //Email Already Exists
-            throw new Exceptions\UserAlreadyExistsException(trans('user-management::messages.email_already_exists'), array(trans('user-management::messages.email_already_exists')));
+            throw new UserAlreadyExistsException(trans('user-management::messages.email_already_exists'), array(trans('user-management::messages.email_already_exists')));
         }
 
-        if ($this->doExists(["username" => $inputs['username']])) {
+        if (isset($inputs['username'])&&$this->doExists(["username" => $inputs['username']])) {
             //Username Already Exists
-            throw new Exceptions\UserAlreadyExistsException(trans('user-management::messages.username_already_exists'), array(trans('user-management::messages.username_already_exists')));
+            throw new UserAlreadyExistsException(trans('user-management::messages.username_already_exists'), array(trans('user-management::messages.username_already_exists')));
         }
 
         $user = $this->createModel();
@@ -128,7 +143,7 @@ class UserManagement
 
             if (!Schema::hasColumn($this->users_table, $key)) {
                 continue;
-                //throw new Exceptions\ColumnNotFoundException(trans("messages.column_not_found", ['key' => $key]), array(trans("messages.column_not_found", ['key' => $key])));
+                //throw new ColumnNotFoundException(trans("messages.column_not_found", ['key' => $key]), array(trans("messages.column_not_found", ['key' => $key])));
             }
 
             if ($key == "password") {
@@ -163,7 +178,7 @@ class UserManagement
 
     /**
      * @param $email
-     * @throws Exceptions\UserNotFoundException
+     * @throws UserNotFoundException
      */
     public function findUserByLogin($email)
     {
@@ -173,14 +188,14 @@ class UserManagement
             $user = $model->newQuery()->where("email", '=', $email)->first();
             return $user;
         } else {
-            throw new Exceptions\UserNotFoundException(trans('user-management::messages.user_not_found'), array(trans('user-management::messages.user_not_found')));
+            throw new UserNotFoundException(trans('user-management::messages.user_not_found'), array(trans('user-management::messages.user_not_found')));
         }
 
     }
 
     /**
      * @param $id
-     * @throws Exceptions\UserNotFoundException
+     * @throws UserNotFoundException
      */
     public function findUserById($id)
     {
@@ -189,25 +204,25 @@ class UserManagement
             $user = $model->newQuery()->find($id);
             return $user;
         } else {
-            throw new Exceptions\UserNotFoundException(trans('user-management::messages.user_not_found'), array(trans('user-management::messages.user_not_found')));
+            throw new UserNotFoundException(trans('user-management::messages.user_not_found'), array(trans('user-management::messages.user_not_found')));
         }
     }
 
     /**
      * @param null $name
      * @return Groups
-     * @throws Exceptions\GroupExistsException
-     * @throws Exceptions\NameRequiredException
+     * @throws GroupExistsException
+     * @throws NameRequiredException
      */
     public function createGroup($name = null)
     {
 
         if (is_null($name) || strlen($name) <= 0) {
-            throw new Exceptions\NameRequiredException(trans('user-management::messages.group_name_required'), array(trans('user-management::messages.group_name_required')));
+            throw new NameRequiredException(trans('user-management::messages.group_name_required'), array(trans('user-management::messages.group_name_required')));
         }
 
         if (Groups::where('name', $name)->count() > 0) {
-            throw new Exceptions\GroupExistsException(trans('user-management::messages.group_already_required'), array(trans('user-management::messages.group_already_required')));
+            throw new GroupExistsException(trans('user-management::messages.group_already_required'), array(trans('user-management::messages.group_already_required')));
         } else {
             $group = new Groups();
             $group->name = $name;
@@ -227,7 +242,7 @@ class UserManagement
 
     /**
      * @param $arr
-     * @throws Exceptions\GroupNotFoundException
+     * @throws GroupNotFoundException
      */
     public function deleteGroup($arr)
     {
@@ -243,28 +258,28 @@ class UserManagement
             $group->delete();
 
         } catch (ModelNotFoundException $e) {
-            throw new Exceptions\GroupNotFoundException(trans('user-management::messages.group_not_found'), [trans('user-management::messages.group_not_found')]);
+            throw new GroupNotFoundException(trans('user-management::messages.group_not_found'), [trans('user-management::messages.group_not_found')]);
         }
 
     }
 
     /**
      * @param $group_id
-     * @throws Exceptions\GroupNotFoundException
+     * @throws GroupNotFoundException
      */
     public function findGroupById($group_id)
     {
         try {
             return Groups::find($group_id);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            throw new Exceptions\GroupNotFoundException(trans('user-management::messages.group_not_found'), array(trans('user-management::messages.group_not_found')));
+            throw new GroupNotFoundException(trans('user-management::messages.group_not_found'), array(trans('user-management::messages.group_not_found')));
         }
 
     }
 
     /**
      * @param $group_name
-     * @throws Exceptions\GroupNotFoundException
+     * @throws GroupNotFoundException
      */
     public function findGroupByName($group_name)
     {
@@ -274,7 +289,7 @@ class UserManagement
         if (sizeof($grp)>0) {
             return $grp;
         } else {
-            throw new Exceptions\GroupNotFoundException(trans('user-management::messages.group_not_found'), array(trans('user-management::messages.group_not_found')));
+            throw new GroupNotFoundException(trans('user-management::messages.group_not_found'), array(trans('user-management::messages.group_not_found')));
         }
     }
 
@@ -342,41 +357,41 @@ class UserManagement
      * @param $email
      * @param $remember
      * @param bool $check_throttle
-     * @throws Exceptions\UserBannedException
-     * @throws Exceptions\UserNotActivatedException
-     * @throws Exceptions\UserNotFoundException
-     * @throws Exceptions\UserSuspendedException
+     * @throws UserBannedException
+     * @throws UserNotActivatedException
+     * @throws UserNotFoundException
+     * @throws UserSuspendedException
      */
     public function loginWithID($email,$remember,$check_throttle = true){
 
         $user = Users::where("email", $email)->first();
 
         if (sizeof($user) <= 0) {
-            throw new Exceptions\UserNotFoundException(trans('user-management::messages.account_not_found'), [trans('user-management::messages.account_not_found')]);
+            throw new UserNotFoundException(trans('user-management::messages.account_not_found'), [trans('user-management::messages.account_not_found')]);
         }
 
         if ($check_throttle) {
 
             //Check Activated .
             if ($user->activated!=1) {
-                throw new Exceptions\UserNotActivatedException(trans('user-management::messages.user_not_activated'), [trans('user-management::messages.user_not_activated')]);
+                throw new UserNotActivatedException(trans('user-management::messages.user_not_activated'), [trans('user-management::messages.user_not_activated')]);
             }
 
             //Check banned .
             if (Throttle::where("user_id", $user->id)->where("banned", 1)->count() > 0) {
-                throw new Exceptions\UserBannedException(trans('user-management::messages.user_banned'), [trans('user-management::messages.user_banned')]);
+                throw new UserBannedException(trans('user-management::messages.user_banned'), [trans('user-management::messages.user_banned')]);
             }
 
             //Check suspended .
             if (Throttle::where("user_id", $user->id)->where("suspended", "1")->count() > 0) {
-                throw new Exceptions\UserSuspendedException(trans('user-management::messages.user_suspended'), [trans('user-management::messages.user_suspended')]);
+                throw new UserSuspendedException(trans('user-management::messages.user_suspended'), [trans('user-management::messages.user_suspended')]);
             }
         }
 
         if(Auth::loginUsingId($user->id,$remember)){
             return Auth::user();
         }else{
-            throw new Exceptions\UserNotFoundException(trans('user-management::messages.account_not_found'), [trans('user-management::messages.account_not_found')]);
+            throw new UserNotFoundException(trans('user-management::messages.account_not_found'), [trans('user-management::messages.account_not_found')]);
         }
     }
 
@@ -384,17 +399,17 @@ class UserManagement
      * @param $credentials
      * @param $remember
      * @param bool $check_throttle
-     * @throws Exceptions\LoginFieldsMissingException
-     * @throws Exceptions\UserBannedException
-     * @throws Exceptions\UserNotActivatedException
-     * @throws Exceptions\UserNotFoundException
-     * @throws Exceptions\UserSuspendedException
+     * @throws LoginFieldsMissingException
+     * @throws UserBannedException
+     * @throws UserNotActivatedException
+     * @throws UserNotFoundException
+     * @throws UserSuspendedException
      */
     public function login($credentials, $remember, $check_throttle = true)
     {
 
         if (strlen($credentials['email'])<=0||strlen($credentials['password'])<=0) {
-            throw new Exceptions\LoginFieldsMissingException(trans('user-management::messages.email_password_missing'), [trans('user-management::messages.email_password_missing')]);
+            throw new LoginFieldsMissingException(trans('user-management::messages.email_password_missing'), [trans('user-management::messages.email_password_missing')]);
         }
 
         if ($check_throttle) {
@@ -402,29 +417,29 @@ class UserManagement
             $user = Users::where("email", $credentials['email'])->first();
 
             if (sizeof($user) <= 0) {
-                throw new Exceptions\UserNotFoundException(trans('user-management::messages.account_not_found'), [trans('user-management::messages.account_not_found')]);
+                throw new UserNotFoundException(trans('user-management::messages.account_not_found'), [trans('user-management::messages.account_not_found')]);
             }
 
             //Check Activated .
             if ($user->activated!=1) {
-                throw new Exceptions\UserNotActivatedException(trans('user-management::messages.user_not_activated'), [trans('user-management::messages.user_not_activated')]);
+                throw new UserNotActivatedException(trans('user-management::messages.user_not_activated'), [trans('user-management::messages.user_not_activated')]);
             }
 
             //Check banned .
             if (Throttle::where("user_id", $user->id)->where("banned", 1)->count() > 0) {
-                throw new Exceptions\UserBannedException(trans('user-management::messages.user_banned'), [trans('user-management::messages.user_banned')]);
+                throw new UserBannedException(trans('user-management::messages.user_banned'), [trans('user-management::messages.user_banned')]);
             }
 
             //Check suspended .
             if (Throttle::where("user_id", $user->id)->where("suspended", "1")->count() > 0) {
-                throw new Exceptions\UserSuspendedException(trans('user-management::messages.user_suspended'), [trans('user-management::messages.user_suspended')]);
+                throw new UserSuspendedException(trans('user-management::messages.user_suspended'), [trans('user-management::messages.user_suspended')]);
             }
         }
 
         if(Auth::attempt($credentials, $remember)){
             return Auth::user();
         }else{
-            throw new Exceptions\UserNotFoundException(trans('user-management::messages.account_not_found'), [trans('user-management::messages.account_not_found')]);
+            throw new UserNotFoundException(trans('user-management::messages.account_not_found'), [trans('user-management::messages.account_not_found')]);
         }
     }
 

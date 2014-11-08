@@ -3,6 +3,7 @@
 return [
   'validation_failed'=>"Validation Failed",
   'user_already_exists'=>"User already exists",
+  'email_already_exists'=>"Email already exists",
   'group_not_found'=>"Group not found",
   'column_not_found'=>"Column :key not found",
   'user_not_found'=>"User not found",

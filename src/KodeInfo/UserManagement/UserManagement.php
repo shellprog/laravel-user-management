@@ -132,11 +132,6 @@ class UserManagement
             throw new UserAlreadyExistsException(trans('user-management::messages.email_already_exists'), array(trans('user-management::messages.email_already_exists')));
         }
 
-        if (isset($inputs['username'])&&$this->doExists(["username" => $inputs['username']])) {
-            //Username Already Exists
-            throw new UserAlreadyExistsException(trans('user-management::messages.username_already_exists'), array(trans('user-management::messages.username_already_exists')));
-        }
-
         $user = $this->createModel();
 
         foreach ($inputs as $key => $value) {
@@ -169,6 +164,8 @@ class UserManagement
 
         if ($activate) {
             $user->attemptActivation($user->getActivationCode());
+        }else{
+            $user->getActivationCode();
         }
 
         return $user;

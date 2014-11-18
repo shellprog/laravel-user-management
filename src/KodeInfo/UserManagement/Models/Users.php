@@ -103,6 +103,11 @@ class Users extends \Eloquent implements UserInterface, RemindableInterface{
         return $this->inGroup('guest');
     }
 
+    public function isUser()
+    {
+        return $this->inGroup('user');
+    }
+
     public function isCustomer()
     {
         return $this->inGroup('customer');

@@ -9,12 +9,12 @@
     ],
     "require": {
         "php": ">=5.3.3",
-        "illuminate/support": "4.2.*@dev",
-        "illuminate/translation": "4.2.*@dev"
+        "illuminate/support": "5.1.*@dev"
+        "illuminate/translation": "5.1.*@dev"
     },
     "autoload": {
-        "psr-0": {
-            "KodeInfo\\UserManagement": "src/"
+        "psr-4": {
+			"KodeInfo\\UserManagement": "src/"
         }
     },
     "minimum-stability": "stable"
